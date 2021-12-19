@@ -119,3 +119,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# стр - 49 - Обработка данных формы
+# почтовый сервер
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_HOST_USER = 'bd2408972@mail.ru'
+EMAIL_HOST_PASSWORD = 'gXXxaSmeEQVaNHxL9dgx'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True

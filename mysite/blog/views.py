@@ -2,6 +2,8 @@ from .models import Post
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
+from .forms import EmailPostForm
+from django.core.mail import send_mail
 
 ## стр 41 - Создание обработчиков списка и страницы подробностей
 # def post_list(request):
@@ -55,3 +57,42 @@ class PostListView(ListView):
     paginate_by = 3
     # использовать указанный шаблон для формирования страницы.
     template_name = 'blog/post/list.html'
+
+# стр - 49 - Обработка данных формы
+# cnh - 51 - Отправка электронной почты с Django
+def post_share(request, post_id):
+    print('A am here', post_id)
+    """
+    Обработчик формы
+    получает id статьи
+    Один для отображения пустой формы и  обработки введенных данных
+    """
+    # Получение СТАТЬЕ по идентификатору.
+    post = get_object_or_404(Post, id=post_id, status='published')
+    # флаг - отпарвлено ли сообщение
+    sent = False
+    if request.method == 'POST': # если метод POST
+        # получаем данные из request и создаем объект формы
+        # Форма была отправлена на сохранение.
+        form = EmailPostForm(request.POST)
+        # проверка введенных данных T/F, ошибки в form.errors.
+        if form.is_valid():
+            # Если форма некорректна, мы возвращаем ее с введенными пользователем данными и сообщениями об ошибках
+            # Все поля формы прошли валидацию - возвращается словарем с полями формы
+            # Если форма не проходит валидацию, то в атрибут cleaned_data попадут только корректные поля.
+            cd = form.cleaned_data
+            # ... Отправка электронной почты.
+            # Отправка электронной почты.
+            post_url = request.build_absolute_uri(post.get_absolute_url()) # абсолютная ссылка на статью
+            # достаем из полей формы - name email comments to - (см класс формы)
+            subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
+            message = 'Read "{}" at {}\n\n{}\'s comments: {}'.format(post.title, post_url, cd['name'], cd['comments'])
+            # отпарвить эмейл - аргументы - сообщение, отправителя и список получателей достаем из словаря формы cleaned_data['to']
+            send_mail(subject, message, 'bd2408972@mail.ru', [cd['to']])
+            sent = True
+    else:
+        form = EmailPostForm()
+    # Если метод запроса – GET - отображает пустую форму????????
+    return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent' : sent})
+
+
