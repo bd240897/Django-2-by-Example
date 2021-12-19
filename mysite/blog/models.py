@@ -42,12 +42,15 @@ class Post(models.Model):
 # стр - 56 - Добавление подсистемы комментариев
 class Comment(models.Model):
     """Модель БД для хранения комнтариев"""
+    # ForeignKey для привязки к  определенной статье.
+    # related_name позволяет получить доступ к комментариям конкретной статьи как  post.comments.all() - ПРОСТО ИМЯ
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     name = models.CharField(max_length=80)
     email = models.EmailField()
     body = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    # сможем скрыть некторые комменты
     active = models.BooleanField(default=True)
 
     class Meta:

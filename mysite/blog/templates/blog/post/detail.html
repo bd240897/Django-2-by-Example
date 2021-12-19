@@ -9,4 +9,40 @@
         <!--динамического формирования ссылок - описано в url.py - тег  url . - получаем абс URL-->
         <a href='{% url "blog:post_share" post.id %}'>  Share this post</a>
     </p>
+
+    <!--Общее число комментариев на страницу-->
+    <!--для вызова функций в шаблонах не нужно указывать круглые скобки-->
+    <!--with -  позволяет назначить переменной новое имя-->
+    {% with comments.count as total_comments %}
+        <!--pluralize - добавляет s к слову total_comments если нужно-->
+        <h2>{{ total_comments }} comment{{ total_comments|pluralize }}</h2>
+    {% endwith %}
+
+    <!--Cписок комментариев-->
+    {% for comment in comments %}
+        <div class="comment">
+            <p class="info">
+                <!--нумерация-->
+                Comment {{ forloop.counter }} by {{ comment.name }}
+                {{ comment.created }}
+            </p>
+            {{ comment.body|linebreaks }}
+        </div>
+        <!--если список comments пуст-->
+        {% empty %}
+        <p>There are no comments yet.</p>
+    {% endfor %}
+
+    <!--Отображение формы добавление комменты-->
+    {% if new_comment %}
+        <h2>Your comment has been added.</h2>
+    {% else %}
+        <h2>Add a new comment</h2>
+        <form action="." method="post">
+            {{ comment_form.as_p }}
+            {% csrf_token %}
+            <p><input type="submit" value="Add comment"></p>
+        </form>
+    {% endif %}
 {% endblock %}
+

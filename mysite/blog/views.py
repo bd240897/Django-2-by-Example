@@ -1,9 +1,9 @@
-from .models import Post
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
-from .forms import EmailPostForm
 from django.core.mail import send_mail
+from .models import Post, Comment
+from .forms import EmailPostForm, CommentForm
 
 ## стр 41 - Создание обработчиков списка и страницы подробностей
 # def post_list(request):
@@ -96,3 +96,39 @@ def post_share(request, post_id):
     return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent' : sent})
 
 
+# cтр - 58 - Обработка модельных форм
+def post_detail(request, year, month, day, post):
+    """
+    Отобразить одну статью + комменты
+    И отображает и выводит комменты
+    """
+    # запрос к базе данных
+    post = get_object_or_404(Post, slug=post,
+                                   status='published',
+                                   publish__year=year,
+                                   publish__month=month,
+                                   publish__day=day)
+
+    # Список всех активных комментариев для этой статьи.
+    # post.comments обращение к ПОСТУ по связанной таблице КОММЕНТ
+    # --менеджер связанных объектов comments, определенный в модели Comment в аргументе related_name
+    comments = post.comments.filter(active=True)
+    new_comment = None
+    if request.method == 'POST':
+        # Пользователь отправил комментарий.
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            # Создаем обьект модели комментариев, но пока не сохраняем в базе данных при помощи commit=False.
+            # перед сохранением объекта нам НУЖНО еще его изменить
+            new_comment = comment_form.save(commit=False)
+            # Привязываем комментарий к текущей статье.
+            new_comment.post = post
+            # Сохраняем комментарий в базе данных.
+            new_comment.save()
+    else:
+        comment_form = CommentForm()
+            # формирования HTML-шаблона
+    return render(request, 'blog/post/detail.html', {'post': post, 'comments': comments, 'new_comment': new_comment, 'comment_form': comment_form})
+
+
+# ОСТЕНОВИЛСЯ НА "Добавление подсистемы тегов"
