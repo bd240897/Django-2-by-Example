@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from .models import Post, Comment
 from .forms import EmailPostForm, CommentForm
 from taggit.models import Tag
+from django.db.models import Count
 
 ## стр 41 - Создание обработчиков списка и страницы подробностей
 # def post_list(request):
@@ -41,17 +42,17 @@ def post_list(request, tag_slug=None):
         posts = paginator.page(paginator.num_pages)
     return render(request,'blog/post/list.html', {'page': page, 'posts': posts, 'tag': tag})
 
-# стр 41 - Создание обработчиков списка и страницы подробностей
-def post_detail(request, year, month, day, post):
-    """Отобразить одну статью"""
-    # запрос к базе данных
-    post = get_object_or_404(Post, slug=post,
-                                   status='published',
-                                   publish__year=year,
-                                   publish__month=month,
-                                   publish__day=day)
-    # формирования HTML-шаблона
-    return render(request, 'blog/post/detail.html', {'post': post})
+# # стр 41 - Создание обработчиков списка и страницы подробностей
+# def post_detail(request, year, month, day, post):
+#     """Отобразить одну статью"""
+#     # запрос к базе данных
+#     post = get_object_or_404(Post, slug=post,
+#                                    status='published',
+#                                    publish__year=year,
+#                                    publish__month=month,
+#                                    publish__day=day)
+#     # формирования HTML-шаблона
+#     return render(request, 'blog/post/detail.html', {'post': post})
 
 
 # # стр 46 - Использование обработчиков-классов
@@ -138,8 +139,14 @@ def post_detail(request, year, month, day, post):
             new_comment.save()
     else:
         comment_form = CommentForm()
-            # формирования HTML-шаблона
-    return render(request, 'blog/post/detail.html', {'post': post, 'comments': comments, 'new_comment': new_comment, 'comment_form': comment_form})
+
+    # Формирование списка похожих статей.
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
+
+    # формирования HTML-шаблона
+    return render(request, 'blog/post/detail.html', {'post': post, 'comments': comments, 'new_comment': new_comment, 'comment_form': comment_form, 'similar_posts': similar_posts})
 
 
 # ОСТЕНОВИЛСЯ НА "Добавление подсистемы тегов"

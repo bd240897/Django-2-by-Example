@@ -44,5 +44,18 @@
             <p><input type="submit" value="Add comment"></p>
         </form>
     {% endif %}
+
+    <!--Отображение похожих постов-->
+    {% if similar_posts %}
+        <h2>Similar posts:</h2>
+        {% for similar_post in similar_posts %}
+            <p>
+                <a href="{{ similar_post.get_absolute_url }}"> {{ similar_post.title }}</a>
+            </p>
+        {% endfor %}
+    {% else %}
+        <h2>No Similar posts</h2>
+    {% endif %}
+
 {% endblock %}
 
