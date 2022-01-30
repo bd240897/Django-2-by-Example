@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
+from taggit.managers import TaggableManager
+from taggit.models import Tag
 
 class PublishedManager(models.Manager):
     def get_queryset(self):
@@ -22,8 +24,13 @@ class Post(models.Model):
     updated = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
 
-    objects = models.Manager() # Менеджер по умолчанию.
-    published = PublishedManager() # Наш новый менеджер.
+    # Менеджер по умолчанию
+    objects = models.Manager()
+    # Наш новый менеджер.
+    published = PublishedManager()
+
+    # теги
+    tags = TaggableManager()
 
     def get_absolute_url(self):
         """
@@ -58,3 +65,4 @@ class Comment(models.Model):
 
     def __str__(self):
         return 'Comment by {} on {}'.format(self.name, self.post)
+

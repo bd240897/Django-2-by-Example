@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'blog.apps.BlogConfig',
+    'taggit',
     ]
 
 MIDDLEWARE = [
@@ -127,3 +128,5 @@ EMAIL_HOST_USER = 'bd2408972@mail.ru'
 EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'

@@ -4,6 +4,7 @@ from django.views.generic import ListView
 from django.core.mail import send_mail
 from .models import Post, Comment
 from .forms import EmailPostForm, CommentForm
+from taggit.models import Tag
 
 ## стр 41 - Создание обработчиков списка и страницы подробностей
 # def post_list(request):
@@ -11,27 +12,34 @@ from .forms import EmailPostForm, CommentForm
 #     posts = Post.published.all()
 #     return render(request, 'blog/post/list.html', {'posts': posts})
 
-# # стр 44 - Добавление постраничного отображения
-# def post_list(request):
-#     """Постраничное отображение нескольких статье - класс-пагинатор - версия 2"""
-#     # ОСТАНОВИЛСЯ НА Создание HTML-шаблонов для обработчиков
-#
-#     object_list = Post.published.all()
-#     # 1.инициализируем объект класса Paginator, указав количество объектов на одной странице
-#     paginator = Paginator(object_list, 3) # По 3 статьи на каждой странице.
-#     # 2.извлекаем из запроса GET-параметр page, который указывает текущую страницу
-#     page = request.GET.get('page') # номер страницы, одна странцы = 3 статьи
-#     print(page)
-#     try:
-#         # 3.получаем список объектов на нужной странице - на стрнице под номер page
-#         posts = paginator.page(page)
-#     except PageNotAnInteger:
-#         # Если страница не является целым числом, возвращаем первую страницу.
-#         posts = paginator.page(1)
-#     except EmptyPage:
-#         # Если номер страницы больше, чем общее количество страниц, возвращаем последнюю.
-#         posts = paginator.page(paginator.num_pages)
-#     return render(request,'blog/post/list.html', {'page': page, 'posts': posts})
+# стр 44 - Добавление постраничного отображения
+def post_list(request, tag_slug=None):
+    """Постраничное отображение нескольких статье - класс-пагинатор - версия 2"""
+    # ОСТАНОВИЛСЯ НА Создание HTML-шаблонов для обработчиков
+
+    object_list = Post.published.all()
+
+    # работа с тегами
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        object_list = object_list.filter(tags__in=[tag])
+
+    # 1.инициализируем объект класса Paginator, указав количество объектов на одной странице
+    paginator = Paginator(object_list, 3) # По 3 статьи на каждой странице.
+    # 2.извлекаем из запроса GET-параметр page, который указывает текущую страницу
+    page = request.GET.get('page') # номер страницы, одна странцы = 3 статьи
+    print(page)
+    try:
+        # 3.получаем список объектов на нужной странице - на стрнице под номер page
+        posts = paginator.page(page)
+    except PageNotAnInteger:
+        # Если страница не является целым числом, возвращаем первую страницу.
+        posts = paginator.page(1)
+    except EmptyPage:
+        # Если номер страницы больше, чем общее количество страниц, возвращаем последнюю.
+        posts = paginator.page(paginator.num_pages)
+    return render(request,'blog/post/list.html', {'page': page, 'posts': posts, 'tag': tag})
 
 # стр 41 - Создание обработчиков списка и страницы подробностей
 def post_detail(request, year, month, day, post):
@@ -46,20 +54,20 @@ def post_detail(request, year, month, day, post):
     return render(request, 'blog/post/detail.html', {'post': post})
 
 
-# стр 46 - Использование обработчиков-классов
-class PostListView(ListView):
-    """Аналог функции post_list только в виде класса - ЭТО ПАГИНАТОР-КЛАСС"""
-    # позволяет отображать несколько объектов любого типа.
-
-    # переопределенный QuerySet модели вместо получения всех объектов
-    queryset = Post.published.all()
-    # переменная контекста HTML-шаблона
-    context_object_name = 'posts'
-    # использовать постраничное отображение по три объекта на странице;
-    paginate_by = 3
-    # использовать указанный шаблон для формирования страницы.
-    template_name = 'blog/post/list.html'
-    # УЧЕСТЬ ЧТО шаблон  постраничного вывода по умолчанию не ?page а ?page_obj
+# # стр 46 - Использование обработчиков-классов
+# class PostListView(ListView):
+#     """Аналог функции post_list только в виде класса - ЭТО ПАГИНАТОР-КЛАСС"""
+#     # позволяет отображать несколько объектов любого типа.
+#
+#     # переопределенный QuerySet модели вместо получения всех объектов
+#     queryset = Post.published.all()
+#     # переменная контекста HTML-шаблона
+#     context_object_name = 'posts'
+#     # использовать постраничное отображение по три объекта на странице;
+#     paginate_by = 3
+#     # использовать указанный шаблон для формирования страницы.
+#     template_name = 'blog/post/list.html'
+#     # УЧЕСТЬ ЧТО шаблон  постраничного вывода по умолчанию не ?page а ?page_obj
 
 # стр - 49 - Обработка данных формы
 # cnh - 51 - Отправка электронной почты с Django
