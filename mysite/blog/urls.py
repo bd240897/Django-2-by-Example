@@ -1,6 +1,7 @@
 from django.urls import path
 from django.conf.urls import url, include
 from . import views
+from .feeds import LatestPostsFeed
 
 app_name = 'blog'
 urlpatterns = [
@@ -13,7 +14,11 @@ urlpatterns = [
             # отправка эмейла
             path('<int:post_id>/share/', views.post_share, name='post_share'),
             # работа с тегами
-            path('tag/<slug:tag_slug>/',views.post_list, name='post_list_by_tag')
+            path('tag/<slug:tag_slug>/',views.post_list, name='post_list_by_tag'),
+            # RSS обновления статей
+            path('feed/', LatestPostsFeed(), name='post_feed'),
+            # форма поиска
+            path('search/', views.post_search, name='post_search'),
             ]
 
 # "^(year)/(month)/(day)/(post)/"

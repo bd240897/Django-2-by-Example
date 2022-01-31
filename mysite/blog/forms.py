@@ -21,3 +21,9 @@ class CommentForm(forms.ModelForm):
         model = Comment
         #  явно указать, какие использовать в форме, а какие – нет - доступны пользователю
         fields = ('name', 'email', 'body')
+
+
+class SearchForm(forms.Form):
+    """Форма поиска"""
+
+    query = forms.CharField()
