@@ -1,6 +1,8 @@
 from django import template
 from ..models import Post
 from django.db.models import Count
+from django.utils.safestring import mark_safe
+import markdown
 
 register = template.Library()
 
@@ -25,3 +27,8 @@ def get_most_commented_posts(count=5):
     """тег для отображения статей с наибольшим количеством комментариев"""
     # добавялем к какжлой статье новое поле - количество комментариев total_comments при помощи annotate
     return Post.published.annotate(total_comments=Count('comments')).order_by('-total_comments')[:count]
+
+@register.filter(name='markdown')
+def markdown_format(text):
+    # mark_safe, чтобы пометить результат работы фильтра как HTML-код
+    return mark_safe(markdown.markdown(text))
